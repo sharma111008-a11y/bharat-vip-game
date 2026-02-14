@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BHARAT VIP LIVE</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
+        .box { border: 2px solid #fb0; margin: 15px; padding: 20px; border-radius: 15px; background: #111; }
+        .res { font-size: 30px; color: #0f0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🏆 BHARAT VIP 🏆</h1>
+    <div class="box">
+        <h3>DRAGON TIGER</h3>
+        <div id="dt" class="res">WAITING...</div>
+    </div>
+    <div class="box">
+        <h3>ANDAR BAHAR</h3>
+        <div id="ab" class="res">WAITING...</div>
+    </div>
+    <script>
+        const config = { databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(config);
+        const db = firebase.database();
+        db.ref('liveGame/DT').on('value', (s) => { document.getElementById('dt').innerText = s.val().winner; });
+        db.ref('liveGame/AB').on('value', (s) => { document.getElementById('ab').innerText = s.val().winner; });
+    </script>
+</body>
+</html>

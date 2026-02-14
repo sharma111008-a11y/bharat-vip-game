@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ADMIN PANEL</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { background: #051a05; color: #fff; text-align: center; font-family: sans-serif; }
+        button { width: 80%; padding: 20px; margin: 10px; font-weight: bold; border-radius: 10px; border: none; }
+        .red { background: #d42020; color: #fff; }
+        .blue { background: #2020d4; color: #fff; }
+    </style>
+</head>
+<body>
+    <h1>CONTROL PANEL</h1>
+    <button class="red" onclick="set('DT','DRAGON')">SET DRAGON</button>
+    <button class="blue" onclick="set('DT','TIGER')">SET TIGER</button>
+    <hr>
+    <button style="background:green; color:white;" onclick="set('AB','ANDAR')">SET ANDAR</button>
+    <button class="red" onclick="set('AB','BAHAR')">SET BAHAR</button>
+    <script>
+        const config = { databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(config);
+        function set(g, w) { firebase.database().ref('liveGame/'+g).set({winner: w}); alert(w + " DONE!"); }
+    </script>
+</body>
+</html>
