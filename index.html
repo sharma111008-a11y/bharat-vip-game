@@ -1,32 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BHARAT VIP LIVE</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; }
-        .box { border: 2px solid #fb0; margin: 15px; padding: 20px; border-radius: 15px; background: #111; }
-        .res { font-size: 30px; color: #0f0; font-weight: bold; }
+        :root { --gold: #fb0; --neon: #0f0; }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; margin: 0; }
+        .box { border: 2px solid var(--gold); margin: 15px; padding: 20px; border-radius: 15px; }
+        .res { font-size: 30px; color: var(--neon); font-weight: bold; text-shadow: 0 0 10px var(--neon); }
+        .header { background: #111; padding: 15px; border-bottom: 2px solid var(--gold); }
+        .admin-btn { background: transparent; color: #222; border: none; margin-top: 50px; cursor: pointer; font-size: 10px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: #1a1a1a; padding: 20px; border: 2px solid var(--gold); border-radius: 20px; width: 80%; }
+        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #444; text-align: center; }
+        .save-btn { background: var(--neon); color: #000; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>🏆 BHARAT VIP 🏆</h1>
+
+    <div class="header">
+        <h1 style="margin:0;">🏆 BHARAT VIP 🏆</h1>
+    </div>
+
     <div class="box">
         <h3>DRAGON TIGER</h3>
         <div id="dt" class="res">WAITING...</div>
     </div>
+
     <div class="box">
         <h3>ANDAR BAHAR</h3>
         <div id="ab" class="res">WAITING...</div>
     </div>
+
+    <button class="admin-btn" onclick="openAdmin()">ADMIN LOGIN</button>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--gold)">UPDATE RESULT</h2>
+            <input type="text" id="dt_input" placeholder="Dragon Tiger Result">
+            <input type="text" id="ab_input" placeholder="Andar Bahar Result">
+            <button class="save-btn" onclick="saveData()">PUBLISH RESULT</button>
+            <p onclick="closeAdmin()" style="color:red; cursor:pointer; margin-top:15px;">CLOSE</p>
+        </div>
+    </div>
+
     <script>
-        const config = { databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(config);
+        // आपकी Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAooOEfE4ZjmVR_ztlkQ-61osSpWk3mzKU",
+            authDomain: "bharat-vip-game.firebaseapp.com",
+            databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com",
+            projectId: "bharat-vip-game",
+            storageBucket: "bharat-vip-game.firebasestorage.app",
+            messagingSenderId: "500104934876",
+            appId: "1:500104934876:web:ee773f12ca9c0bab6a0b19"
+        };
+
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        db.ref('liveGame/DT').on('value', (s) => { document.getElementById('dt').innerText = s.val().winner; });
-        db.ref('liveGame/AB').on('value', (s) => { document.getElementById('ab').innerText = s.val().winner; });
+
+        // लाइव रिजल्ट सुनना
+        db.ref('liveGame/DT').on('value', (s) => { document.getElementById('dt').innerText = s.val() || "WAITING..."; });
+        db.ref('liveGame/AB').on('value', (s) => { document.getElementById('ab').innerText = s.val() || "WAITING..."; });
+
+        function saveData() {
+            const dtVal = document.getElementById('dt_input').value;
+            const abVal = document.getElementById('ab_input').value;
+            if(dtVal || abVal) {
+                db.ref('liveGame').update({ DT: dtVal, AB: abVal })
+                .then(() => { alert("Result Updated!"); closeAdmin(); })
+                .catch((e) => alert("Error: Rules publish karen!"));
+            }
+        }
+
+        function openAdmin() {
+            if(prompt("Password (J1a2y3a4):") === "J1a2y3a4") 
+                document.getElementById('adminModal').style.display = 'flex';
+        }
+        function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
     </script>
 </body>
 </html>
