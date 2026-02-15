@@ -3,56 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bharat VIP - Final Edition</title>
+    <title>Bharat VIP - Ultimate Control</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --gold: #d4af37; --dragon: #ff3131; --tiger: #3186ff; --neon: #39ff14; --table: #074a1e; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { background: #000; color: #fff; overflow: hidden; height: 100vh; }
+        body { background: #000; color: #fff; overflow: hidden; height: 100vh; text-align: center; }
 
-        /* History Record Bar */
-        .record-bar { height: 35px; background: #111; display: flex; align-items: center; gap: 5px; padding: 5px; border-bottom: 1px solid #333; overflow-x: auto; scrollbar-width: none; }
-        .dot { min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; flex-shrink: 0; border: 1px solid #fff; }
+        /* Record & Bot Bars */
+        .record-bar { height: 35px; background: #111; display: flex; align-items: center; gap: 5px; padding: 5px; border-bottom: 1px solid #333; overflow-x: auto; }
+        .dot { min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 1px solid #fff; }
+        .bot-strip { height: 25px; background: rgba(0,0,0,0.7); display: flex; align-items: center; gap: 15px; padding: 0 10px; font-size: 10px; color: var(--gold); overflow: hidden; }
 
+        /* Header & Banking */
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #000; border-bottom: 1px solid var(--gold); }
-        .btn-action { background: var(--neon); color: #000; border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .btn-action { background: var(--neon); color: #000; border: none; padding: 5px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
+        /* Game Table */
         .table { height: 170px; margin: 10px; border: 3px solid var(--gold); border-radius: 20px; background: radial-gradient(circle, var(--table), #002200); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .card { width: 45px; height: 65px; background: #fff; color: #000; border-radius: 5px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .card-red { background: var(--dragon) !important; border: 2px solid #fff; color: transparent !important; }
-        #timer { position: absolute; top: 10px; right: 15px; color: var(--neon); font-weight: bold; }
 
-        .bot-strip { height: 25px; background: rgba(0,0,0,0.7); display: flex; align-items: center; gap: 15px; padding: 0 10px; font-size: 10px; color: var(--gold); overflow: hidden; }
-
+        /* Betting Grid & Chips */
         .grid { display: flex; gap: 6px; padding: 6px; height: 140px; }
         .box { flex: 1; border: 1px solid #444; border-radius: 12px; position: relative; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 8px; }
         .chip-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-        .chip-v { position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #fff; font-size: 7px; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px #000; animation: drop 0.3s ease-out; }
+        .chip-v { position: absolute; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #fff; font-size: 7px; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; animation: drop 0.3s ease-out; }
         @keyframes drop { from { transform: translateY(-30px); } to { transform: translateY(0); } }
 
+        /* Footer Chips */
         .chip-bar { display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; width: 100%; height: 80px; background: #000; border-top: 2px solid var(--gold); }
         .c-item { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; cursor: pointer; color: #fff; }
         .active { border-color: var(--neon); transform: scale(1.1); }
+
+        /* Admin & Support Modals */
+        .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9999; padding:20px; text-align:center; overflow-y:auto; }
+        input { width: 90%; padding: 12px; margin: 8px 0; background: #222; color: #fff; border: 1px solid var(--gold); border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<div id="lobby" style="position:fixed; inset:0; background:#000; z-index:6000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+<div id="adminPanel" class="modal">
+    <h1 style="color:var(--gold); margin-bottom:20px;">ADMIN SETTINGS</h1>
+    <div style="background:#111; padding:15px; border-radius:10px; border:1px solid var(--gold); margin-bottom:15px;">
+        <h3 style="color:var(--neon)">UPI & QR SETUP</h3>
+        <input type="text" id="upi_input" placeholder="Enter UPI ID (e.g. name@upi)">
+        <input type="text" id="qr_url_input" placeholder="QR Image Link (URL)">
+        <button class="btn-action" style="width:100%;" onclick="saveAdminData()">SAVE PAYMENT SETTINGS</button>
+    </div>
+    <div style="background:#111; padding:15px; border-radius:10px; border:1px solid var(--gold); margin-bottom:15px;">
+        <h3 style="color:var(--neon)">ID BALANCE CONTROL</h3>
+        <input type="text" id="target_id" placeholder="Enter Player ID Number">
+        <input type="number" id="amt_to_add" placeholder="Amount to Add/Remove">
+        <button class="btn-action" style="width:100%;" onclick="addChipsToID()">UPDATE ID BALANCE</button>
+    </div>
+    <button onclick="document.getElementById('adminPanel').style.display='none'" style="color:red; background:none; border:none; margin-top:20px;">[ CLOSE ADMIN ]</button>
+</div>
+
+<div id="depModal" class="modal">
+    <h2 style="color:var(--gold)">DEPOSIT POINTS</h2>
+    <div id="qr-display" style="margin:20px auto; width:150px; height:150px; background:#fff; display:flex; align-items:center; justify-content:center; color:#000;">
+        QR NOT SET
+    </div>
+    <p>Pay to UPI: <b id="upi-display" style="color:var(--neon)">admin@upi</b></p>
+    <div style="margin-top:20px;">
+        <button class="btn-action" style="background:#25D366;" onclick="window.open('https://wa.me/918878888590')">WhatsApp Help</button>
+        <button class="btn-action" style="background:#0088cc;" onclick="window.open('https://t.me/bharatvip')">Telegram</button>
+    </div>
+    <button onclick="document.getElementById('depModal').style.display='none'" style="color:#fff; margin-top:30px; background:none; border:none;">BACK</button>
+</div>
+
+<div id="lobby" style="position:fixed; inset:0; background:#000; z-index:5000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
     <h1 style="color:var(--gold); margin-bottom:40px;">BHARAT VIP</h1>
-    <button onclick="startGame('AB')" class="btn-action" style="width:180px; padding:12px; margin:10px;">ANDAR BAHAR</button>
-    <button onclick="startGame('DT')" class="btn-action" style="width:180px; padding:12px; margin:10px;">DRAGON TIGER</button>
+    <button onclick="startGame('AB')" class="btn-action" style="width:180px; padding:15px; margin:10px; border-radius:30px;">ANDAR BAHAR</button>
+    <button onclick="startGame('DT')" class="btn-action" style="width:180px; padding:15px; margin:10px; border-radius:30px;">DRAGON TIGER</button>
 </div>
 
 <div id="gameUI" style="display:none;">
     <div class="record-bar" id="hist-row"></div>
     <div class="bot-strip" id="bot-live"></div>
     <div class="header-top">
-        <button class="btn-action">DEPOSIT</button>
-        <div style="color:var(--neon); font-weight:bold;">₹<span id="bal-val">1,000,000</span></div>
-        <button class="btn-action" style="background:#fff;">WITHDRAW</button>
+        <button class="btn-action" onclick="document.getElementById('depModal').style.display='block'">DEPOSIT</button>
+        <div style="font-size:12px;">ID: <span id="my-id">554321</span><br><b style="color:var(--neon)">₹<span id="bal-val">1,000,000</span></b></div>
+        <button class="btn-action" style="background:#fff;" onclick="alert('Withdraw Request Sent!')">WITHDRAW</button>
     </div>
 
     <div class="table">
-        <div id="timer">15</div>
+        <div id="timer" style="position:absolute; top:10px; right:15px; color:var(--neon); font-weight:bold;">15</div>
         <div id="j-area" style="margin-bottom:10px;"><div id="j-card" class="card card-red">?</div></div>
         <div style="display:flex; gap:35px;">
             <div id="card-l" class="card card-red">?</div>
@@ -63,17 +101,17 @@
     <div class="grid">
         <div class="box" onclick="placeBet('L')">
             <div class="chip-layer" id="layer-L"></div>
-            <div id="txt-l" style="color:var(--dragon); font-weight:bold;">SIDE L</div>
+            <div id="txt-l" style="font-weight:bold;">SIDE L</div>
             <div style="color:var(--neon); font-size:11px;" id="cnt-l">₹0</div>
         </div>
         <div class="box" id="box-m" style="flex:0.6;" onclick="placeBet('M')">
             <div class="chip-layer" id="layer-M"></div>
-            <div style="font-size:12px;">TAI</div>
+            <div>TAI</div>
             <div style="color:var(--neon); font-size:11px;" id="cnt-m">₹0</div>
         </div>
         <div class="box" onclick="placeBet('R')">
             <div class="chip-layer" id="layer-R"></div>
-            <div id="txt-r" style="color:var(--tiger); font-weight:bold;">SIDE R</div>
+            <div id="txt-r" style="font-weight:bold;">SIDE R</div>
             <div style="color:var(--neon); font-size:11px;" id="cnt-r">₹0</div>
         </div>
     </div>
@@ -91,9 +129,35 @@
 <script>
     let balance = 1000000, mode = "", chip = 1000, canBet = false;
     let pool = {L:0, M:0, R:0}, myBet = {L:0, M:0, R:0};
-    const names = ["Ram", "Ali", "Sam", "Viru", "Deep", "Raj", "Sona", "Kanu"];
+    const bots = ["Arjun", "Subhash", "Vikram", "Zoya", "Meera", "Kabir"];
     const cards = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
+    // 4. Admin Functions
+    function adminT() {
+        let p = prompt("Enter Password:");
+        if(p === "J1a2y3a4") document.getElementById('adminPanel').style.display='block';
+    }
+
+    function saveAdminData() {
+        let u = document.getElementById('upi_input').value;
+        let q = document.getElementById('qr_url_input').value;
+        document.getElementById('upi-display').innerText = u;
+        document.getElementById('qr-display').innerHTML = `<img src="${q}" width="140">`;
+        alert("Payment Settings Saved!");
+    }
+
+    function addChipsToID() {
+        let pid = document.getElementById('target_id').value;
+        let amt = parseInt(document.getElementById('amt_to_add').value);
+        if(pid === document.getElementById('my-id').innerText) {
+            balance += amt; updateUI();
+            alert("Balance Updated for ID: " + pid);
+        } else {
+            alert("ID not found in active session!");
+        }
+    }
+
+    // 5. Game Logic
     function startGame(m) {
         mode = m; document.getElementById('lobby').style.display='none'; document.getElementById('gameUI').style.display='block';
         if(m==='AB') { 
@@ -116,14 +180,8 @@
                 if(!canBet) return;
                 let side = (mode==='DT')?['L','R','M'][Math.floor(Math.random()*3)] : (Math.random()>0.5?'L':'R');
                 let amt = [10, 100, 500, 1000][Math.floor(Math.random()*4)];
-                
-                // 🔥 TAI LIMIT CHECK (Max 5000)
-                if(side==='M' && (pool.M + amt) > 5000) return;
-
+                if(side==='M' && (pool.M + amt) > 5000) return; // 🔥 TAI LIMIT 5000
                 pool[side] += amt; dropChip(side, amt); updateUI();
-                let bStr = document.getElementById('bot-live');
-                let s = document.createElement('span'); s.innerHTML = `👤 ${names[Math.floor(Math.random()*8)]}: ₹${amt}`;
-                bStr.prepend(s); if(bStr.children.length>5) bStr.lastChild.remove();
             }, 300);
 
             for(let i=15; i>=0; i--) { document.getElementById('timer').innerText=i; await new Promise(r=>setTimeout(r,1000)); }
@@ -132,7 +190,7 @@
             let win = "";
             if(mode==='DT') {
                 let v1 = Math.floor(Math.random()*13), v2 = Math.floor(Math.random()*13);
-                renderC('card-l', v1); await new Promise(r=>setTimeout(r,1200)); // Dhire speed
+                renderC('card-l', v1); await new Promise(r=>setTimeout(r,1200)); // 🐢 DHIRI SPEED
                 renderC('card-r', v2); win = v1 > v2 ? 'L' : (v2 > v1 ? 'R' : 'M');
             } else {
                 let matched = false, turn = 'L';
@@ -140,7 +198,7 @@
                     let v = Math.floor(Math.random()*13);
                     renderC(turn==='L'?'card-l':'card-r', v);
                     if(v === joker) { win = turn; matched = true; }
-                    else { turn = (turn==='L'?'R':'L'); await new Promise(r => setTimeout(r, 1000)); } // Dhire speed
+                    else { turn = (turn==='L'?'R':'L'); await new Promise(r => setTimeout(r, 1000)); }
                 }
             }
             if(myBet[win]>0) balance += (myBet[win]*1.95);
@@ -150,7 +208,7 @@
 
     function placeBet(s) {
         if(canBet && balance >= chip) {
-            if(s==='M' && (myBet.M + chip) > 5000) return alert("TAI Limit ₹5000!");
+            if(s==='M' && (myBet.M + chip) > 5000) return alert("TAI LIMIT ₹5000!");
             balance -= chip; pool[s] += chip; myBet[s] += chip;
             dropChip(s, chip); updateUI();
         }
@@ -160,7 +218,7 @@
         const row = document.getElementById('hist-row'); const d = document.createElement('div'); d.className = 'dot';
         d.innerText = mode==='AB' ? (w==='L'?'A':'B') : (w==='L'?'D':(w==='R'?'T':'Ti'));
         d.style.background = w==='L'?'var(--dragon)':(w==='R'?'var(--tiger)':'var(--gold)');
-        row.prepend(d); if(row.children.length>20) row.lastChild.remove();
+        row.prepend(d);
     }
 
     function dropChip(side, val) {
@@ -192,7 +250,6 @@
     }
 
     function selC(v,e) { chip=v; document.querySelectorAll('.c-item').forEach(i=>i.classList.remove('active')); e.classList.add('active'); }
-    function adminT() { if(prompt("Pass:") === "J1a2y3a4") alert("Admin Control Active"); }
 </script>
 </body>
 </html>
