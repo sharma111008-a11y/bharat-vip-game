@@ -7,128 +7,68 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root {
-            --gold-linear: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-        }
-        body {
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            color: #fff;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: sans-serif;
-            margin: 0;
-        }
-        .login-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid #bf953f;
-            border-radius: 20px;
-            padding: 40px 20px;
-            width: 85%;
-            max-width: 350px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(191, 149, 63, 0.2);
-        }
-        h1 {
-            color: #ffcc00;
-            font-size: 28px;
-            text-transform: uppercase;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-        input {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border: 1px solid #333;
-            background: #000;
-            color: #fff;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .v-btn {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            background: var(--gold-linear);
-            border: none;
-            border-radius: 10px;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            color: #000;
-            text-transform: uppercase;
-        }
+        :root { --gold: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); }
+        body { background: #000; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; margin: 0; }
+        .login-card { background: rgba(255, 255, 255, 0.03); border: 1px solid #bf953f; border-radius: 20px; padding: 40px 20px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 0 15px rgba(191, 149, 63, 0.2); }
+        h1 { color: #ffcc00; font-size: 28px; text-transform: uppercase; margin-bottom: 30px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; font-size: 16px; box-sizing: border-box; outline: none; }
+        .v-btn { width: 100%; padding: 15px; margin-top: 20px; background: var(--gold); border: none; border-radius: 10px; font-weight: 900; cursor: pointer; color: #000; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
         <h1>BHARAT VIP</h1>
-        
-        <div id="login-form">
+        <div id="auth-fields">
             <input type="number" id="phone" placeholder="Mobile Number">
             <input type="password" id="pass" placeholder="Password">
         </div>
-
         <div id="otp-sec" style="display:none;">
-            <p style="color: #bf953f; font-size: 12px;">OTP bhej diya gaya hai...</p>
-            <input type="number" id="otp-val" placeholder="ENTER OTP">
+            <p style="color: #bf953f; font-size: 12px; margin-bottom: 5px;">OTP has been sent to your mobile</p>
+            <input type="number" id="otp-input" placeholder="ENTER 4-DIGIT OTP">
         </div>
-
-        <button class="v-btn" id="main-btn" onclick="handleLogin()">GET OTP</button>
+        <button class="v-btn" id="btn-text" onclick="handleAuth()">GET OTP</button>
     </div>
 
 <script>
-    // Aapki URL yahan automatic connect hogi
-    const firebaseConfig = { 
-        databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com/" 
-    };
+    const firebaseConfig = { databaseURL: "https://bharat-vip-game-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     let step = 1;
-    let generatedOTP = "";
+    let realOTP = "";
 
-    async function handleLogin() {
+    async function handleAuth() {
         const phone = document.getElementById('phone').value;
         const pass = document.getElementById('pass').value;
 
         if (phone.length < 10) return alert("Sahi number dalein!");
 
         if (step === 1) {
-            // Step 1: OTP Generate karna aur dikhana
-            generatedOTP = Math.floor(1000 + Math.random() * 9000); // Real 4-digit OTP
+            // Real OTP Generation
+            realOTP = Math.floor(1000 + Math.random() * 9000);
+            alert("Aapka Verification Code: " + realOTP); 
             
-            // Testing ke liye alert (Jab SMS API lagayenge tab alert hat jayega)
-            alert("Aapka OTP hai: " + generatedOTP); 
-            
-            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('auth-fields').style.display = 'none';
             document.getElementById('otp-sec').style.display = 'block';
-            document.getElementById('main-btn').innerText = "VERIFY LOGIN";
+            document.getElementById('btn-text').innerText = "VERIFY & LOGIN";
             step = 2;
         } else {
-            // Step 2: OTP Verify karna
-            const userOtp = document.getElementById('otp-val').value;
-            
-            if (userOtp == generatedOTP) {
-                // Firebase mein user data check/save karna
+            const userOtp = document.getElementById('otp-input').value;
+            if (userOtp == realOTP) {
                 const userRef = db.ref('users/' + phone);
                 const snap = await userRef.once('value');
                 
                 if (!snap.exists()) {
                     await userRef.set({
                         uid: "VIP" + phone.substring(6),
-                        wallet: 500,
+                        wallet: 500, 
                         password: pass,
                         phone: phone
                     });
                 }
-                
                 localStorage.setItem("userPhone", phone);
-                window.location.href = "dashboard.html"; // Agle step mein banayenge
+                window.location.href = "dashboard.html"; 
             } else {
                 alert("Galat OTP!");
             }
